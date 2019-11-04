@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>springboot-component-practice</artifactId>
+
+  <build>
+    <plugins>
+
+      <!-- Compile Source Code Plugin -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.8.1</version>
+      </plugin>
+
+      <plugin>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <groupId>pl.project13.maven</groupId>
+        <version>3.0.1</version>
+      </plugin>
+
+      <!-- Springboot Plugin -->
+      <plugin>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <!-- Repackage Jar -->
+          <execution>
+            <configuration>
+              <!-- package jar name add in -->
+              <classifier>exec</classifier>
+            </configuration>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+            <id>repackage</id>
+          </execution>
+          <!-- Add Build Info -->
+          <execution>
+            <configuration>
+              <additionalProperties>
+                <encoding.reporting>${java.encoding}</encoding.reporting>
+                <encoding.source>${java.encoding}</encoding.source>
+                <java.source>${java.version}</java.source>
+                <java.target>${java.version}</java.target>
+              </additionalProperties>
+            </configuration>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+          </execution>
+          <!-- Skip Test Config -->
+          <execution>
+            <configuration>
+              <skip>${skip.it}</skip>
+            </configuration>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <id>pre-integration-test</id>
+          </execution>
+          <execution>
+            <configuration>
+              <skip>${skip.it}</skip>
+            </configuration>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+            <id>post-integration-test</id>
+          </execution>
+        </executions>
+        <groupId>org.springframework.boot</groupId>
+        <version>${spring.boot.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencyManagement>
+    <dependencies>
+      <!-- Springboot Version Pom -->
+      <dependency>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <scope>import</scope>
+        <type>pom</type>
+        <version>${spring.boot.version}</version>
+      </dependency>
+
+      <!-- project items -->
+      <dependency>
+        <artifactId>rsocket</artifactId>
+        <groupId>com.ucucs</groupId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <description>Practice Spring Boot Component</description>
+  <groupId>com.ucucs</groupId>
+  <modelVersion>4.0.0</modelVersion>
+  <modules>
+    <!--    <module>rsocket</module>-->
+    <module>usecase</module>
+  </modules>
+
+  <!--  Module Manage -->
+  <name>springboot-component-practice</name>
+
+  <packaging>pom</packaging>
+
+  <!-- Dependency Management -->
+  <properties>
+    <java.encoding>UTF-8</java.encoding>
+    <java.version>1.8</java.version>
+
+    <!-- Encoding Config -->
+    <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>${java.encoding}</project.reporting.outputEncoding>
+
+    <!-- Springboot -->
+    <skip.it>true</skip.it>
+
+    <!-- Skip Test -->
+    <spring.boot.version>2.2.0.RELEASE</spring.boot.version>
+  </properties>
+
+  <!-- Build plug-in management -->
+  <version>0.0.1-SNAPSHOT</version>
+
+</project>
