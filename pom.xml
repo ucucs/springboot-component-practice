@@ -18,59 +18,14 @@
         <version>3.8.1</version>
       </plugin>
 
-      <plugin>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <groupId>pl.project13.maven</groupId>
-        <version>3.0.1</version>
-      </plugin>
-
       <!-- Springboot Plugin -->
       <plugin>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <executions>
-          <!-- Repackage Jar -->
           <execution>
-            <configuration>
-              <!-- package jar name add in -->
-              <classifier>exec</classifier>
-            </configuration>
             <goals>
               <goal>repackage</goal>
             </goals>
-            <id>repackage</id>
-          </execution>
-          <!-- Add Build Info -->
-          <execution>
-            <configuration>
-              <additionalProperties>
-                <encoding.reporting>${java.encoding}</encoding.reporting>
-                <encoding.source>${java.encoding}</encoding.source>
-                <java.source>${java.version}</java.source>
-                <java.target>${java.version}</java.target>
-              </additionalProperties>
-            </configuration>
-            <goals>
-              <goal>build-info</goal>
-            </goals>
-          </execution>
-          <!-- Skip Test Config -->
-          <execution>
-            <configuration>
-              <skip>${skip.it}</skip>
-            </configuration>
-            <goals>
-              <goal>start</goal>
-            </goals>
-            <id>pre-integration-test</id>
-          </execution>
-          <execution>
-            <configuration>
-              <skip>${skip.it}</skip>
-            </configuration>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-            <id>post-integration-test</id>
           </execution>
         </executions>
         <groupId>org.springframework.boot</groupId>
@@ -78,6 +33,7 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencyManagement>
     <dependencies>
       <!-- Springboot Version Pom -->
@@ -91,23 +47,27 @@
 
       <!-- project items -->
       <dependency>
-        <artifactId>rsocket</artifactId>
+        <artifactId>enviroment-build-info</artifactId>
         <groupId>com.ucucs</groupId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <description>Practice Spring Boot Component</description>
   <groupId>com.ucucs</groupId>
   <modelVersion>4.0.0</modelVersion>
+
+  <!-- Modules -->
   <modules>
-    <!--    <module>rsocket</module>-->
     <module>usecase</module>
+    <module>enviroment-build-info</module>
   </modules>
 
-  <!--  Module Manage -->
+  <!--  Project Name -->
   <name>springboot-component-practice</name>
 
+  <!-- Package Type -->
   <packaging>pom</packaging>
 
   <!-- Dependency Management -->
@@ -119,14 +79,14 @@
     <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
     <project.reporting.outputEncoding>${java.encoding}</project.reporting.outputEncoding>
 
-    <!-- Springboot -->
-    <skip.it>true</skip.it>
-
     <!-- Skip Test -->
+    <skip.test>true</skip.test>
+
+    <!-- Springboot -->
     <spring.boot.version>2.2.0.RELEASE</spring.boot.version>
   </properties>
 
-  <!-- Build plug-in management -->
+  <!-- Package Version -->
   <version>0.0.1-SNAPSHOT</version>
 
 </project>
