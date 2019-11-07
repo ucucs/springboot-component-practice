@@ -62,6 +62,7 @@
   <modules>
     <module>usecase</module>
     <module>enviroment-build-info</module>
+    <module>websocket-connect</module>
   </modules>
 
   <!--  Project Name -->
@@ -73,7 +74,7 @@
   <!-- Dependency Management -->
   <properties>
     <java.encoding>UTF-8</java.encoding>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
 
     <!-- Encoding Config -->
     <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
