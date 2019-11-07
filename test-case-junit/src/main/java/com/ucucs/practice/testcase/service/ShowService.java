@@ -15,4 +15,8 @@ public class ShowService {
     return textService.getText();
   }
 
+  public String getShowLableNext() {
+    return "Show Next";
+  }
+
 }

@@ -1,7 +1,6 @@
 package com.ucucs.practice.testcase.controller;
 
 import com.ucucs.practice.testcase.model.UserVO;
-import java.util.Date;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,8 +12,7 @@ public class HomeController {
 
   @RequestMapping("/")
   public String index() {
-    Date timeNow = new Date();
-    return "Hello World!" + timeNow;
+    return "Hello World!";
   }
 
   @PostMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
