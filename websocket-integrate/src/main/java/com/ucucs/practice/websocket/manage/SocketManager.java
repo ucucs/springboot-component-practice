@@ -1,9 +1,11 @@
 package com.ucucs.practice.websocket.manage;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 public class SocketManager {
@@ -33,6 +35,12 @@ public class SocketManager {
 
   public static boolean containsKey(String key) {
     return sessionMap.containsKey(key);
+  }
+
+  public static void sendMessage(Integer userId, String message) throws IOException {
+    if (SocketManager.containsKey(userId.toString())) {
+      SocketManager.get(userId.toString()).sendMessage(new TextMessage(message));
+    }
   }
 
 }

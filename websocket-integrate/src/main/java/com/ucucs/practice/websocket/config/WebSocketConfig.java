@@ -5,20 +5,18 @@ import com.ucucs.practice.websocket.interceptor.OnlineHandshakeInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
+@EnableWebSocket
 @Configuration
 public class WebSocketConfig implements WebSocketConfigurer {
 
   @Override
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(onlineWebSocketHandler(), "/websocket-storm").setAllowedOrigins("*")
-        .addInterceptors(onlineHandshakeInterceptor()).withSockJS();
-
     registry.addHandler(onlineWebSocketHandler(), "/websocket").setAllowedOrigins("*")
         .addInterceptors(onlineHandshakeInterceptor());
   }
@@ -33,9 +31,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
     return new OnlineHandshakeInterceptor();
   }
 
-  @Bean
-  public ServerEndpointExporter serverEndpointExporter() {
-    return new ServerEndpointExporter();
-  }
+  // @Bean
+  // public ServerEndpointExporter serverEndpointExporter() {
+  //   return new ServerEndpointExporter();
+  // }
 
 }

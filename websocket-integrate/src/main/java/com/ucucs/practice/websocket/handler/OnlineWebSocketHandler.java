@@ -2,7 +2,6 @@ package com.ucucs.practice.websocket.handler;
 
 import com.ucucs.practice.websocket.constant.AppConstant;
 import com.ucucs.practice.websocket.manage.SocketManager;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
@@ -16,12 +15,6 @@ public class OnlineWebSocketHandler extends TextWebSocketHandler {
 
   private Integer userId;
   private WebSocketSession session;
-
-  public static void sendMessage(Integer userId, String message) throws IOException {
-    if (SocketManager.containsKey(userId.toString())) {
-      SocketManager.get(userId.toString()).sendMessage(new TextMessage(message));
-    }
-  }
 
   @Override
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -37,8 +30,9 @@ public class OnlineWebSocketHandler extends TextWebSocketHandler {
     logger.info("remove session, userId={}, total={}", this.userId, SocketManager.size());
   }
 
-  protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+  protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     logger.info(message.getPayload());
+    SocketManager.sendMessage(userId, "Reply From Server:" + message.getPayload());
   }
 
 
