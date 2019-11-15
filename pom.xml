@@ -65,6 +65,8 @@
     <module>websocket-connect</module>
     <module>test-case-junit</module>
     <module>websocket-integrate</module>
+    <module>websocket-storm</module>
+    <module>excel-processing</module>
   </modules>
 
   <!--  Project Name -->

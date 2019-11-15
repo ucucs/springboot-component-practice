@@ -19,6 +19,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
     registry.addHandler(onlineWebSocketHandler(), "/websocket").setAllowedOrigins("*")
         .addInterceptors(onlineHandshakeInterceptor());
+
+    registry.addHandler(onlineWebSocketHandler(), "/sockjs/websocket").setAllowedOrigins("*")
+        .addInterceptors(onlineHandshakeInterceptor()).withSockJS();
   }
 
   @Bean
