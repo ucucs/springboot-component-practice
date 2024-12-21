@@ -38,17 +38,24 @@ generate_type_regex() {
 
 # 生成提交类型匹配的正则表达式
 type_regex=$(generate_type_regex)
-conventional_commit_regex="^(${type_regex})(\\(.+\\))?\\: .+$"
+conventional_commit_regex="^(${type_regex})(\\(.+\\))?\\:.+$"
 echo "生成的正则匹配规则为: $conventional_commit_regex"
 
 # 从传入参数中读取提交信息
-read -r commit_message <<< "$1"
+commit_msg_file=$1
+
+# 读取提交信息
+commit_message=$(cat "$commit_msg_file")
+echo "当前提交信息：$commit_message"
 
 # 如果提交信息包含"Merge branch"，则跳过校验直接退出
 if [[ $commit_message == *"Merge branch"* ]]; then
     echo "检测到合并分支信息... 跳过校验"
     exit 0
 fi
+
+# 针对中文的：号转换成英文的
+commit_message=$(echo "$commit_message" | sed 's/：/:/g')
 
 # 计算提交信息长度并打印调试信息
 msg_length=${#commit_message}

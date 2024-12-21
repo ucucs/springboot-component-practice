@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
 # 常量定义区域：
-# 设置调试模式，默认关闭
-DEBUG_MODE=1
 # 禁用分支检查标志，值为1表示禁用检查
 BRANCH_CHECK_DISABLED=0
+# 检查不应包含的分支列表
+BRANCH_CHECK_NAMES=(
+   'test' ##test国内分支
+   'test_intl' ##test国际分支
+)
 
 # 功能函数定义：
 # 检查当前分支是否包含禁止的分支
