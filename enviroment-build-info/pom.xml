@@ -34,44 +34,6 @@
         <version>${spring.boot.version}</version>
       </plugin>
 
-      <plugin>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <configuration>
-          <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
-
-          <!-- that's the default value, you don't have to set it -->
-          <generateGitPropertiesFile>true</generateGitPropertiesFile>
-          <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
-          </generateGitPropertiesFilename>
-          <gitDescribe>
-            <skip>true</skip>
-          </gitDescribe>
-          <includeOnlyProperties>
-            <includeOnlyProperty>git.branch</includeOnlyProperty>
-            <includeOnlyProperty>git.commit.id</includeOnlyProperty>
-            <includeOnlyProperty>git.commit.id.abbrev</includeOnlyProperty>
-            <includeOnlyProperty>git.commit.time</includeOnlyProperty>
-            <includeOnlyProperty>git.build.time</includeOnlyProperty>
-            <includeOnlyProperty>git.commit.user.name</includeOnlyProperty>
-            <includeOnlyProperty>git.tags</includeOnlyProperty>
-          </includeOnlyProperties>
-          <prefix>git</prefix>
-          <skip>${skip.git}</skip>
-          <verbose>false</verbose>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>revision</goal>
-            </goals>
-            <id>get-the-git-infos</id>
-            <phase>initialize</phase>
-          </execution>
-        </executions>
-        <groupId>pl.project13.maven</groupId>
-
-        <version>3.0.1</version>
-      </plugin>
     </plugins>
   </build>
   <dependencies>
@@ -88,12 +50,6 @@
     <dependency>
       <artifactId>jackson-databind</artifactId>
       <groupId>com.fasterxml.jackson.core</groupId>
-    </dependency>
-
-    <dependency>
-      <artifactId>lombok</artifactId>
-      <groupId>org.projectlombok</groupId>
-      <optional>true</optional>
     </dependency>
 
     <dependency>

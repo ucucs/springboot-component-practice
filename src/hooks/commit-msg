@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# 配置部分
+# 是否开启提交信息检查
+CHECK_COMMIT_MESSAGE_ON=1
+# 提交信息最短长度要求
+COMMIT_MESSAGE_MIN_LENGTH=10
+
+# 提交类型列表
+# 列表中每一项代表一种类型的提交，例如新功能、修复bug等
+declare -a TYPE_LIST=(
+    'build'      # 打包、构建工具或外部依赖变更
+    'chore'      # 构建流程或辅助工具变动
+    'ci'         # 持续集成配置变动
+    'docs'       # 文档更新
+    'feat'       # 新功能添加
+    'fix'        # 错误修复
+    'perf'       # 性能优化
+    'refactor'   # 代码重构
+    'revert'     # 版本回滚
+    'style'      # 代码格式调整
+    'test'       # 测试相关
+)
+
+# 函数定义区
+
+# 生成用于正则匹配的提交类型字符串
+generate_type_regex() {
+    local type_pattern=""
+    for type in "${TYPE_LIST[@]}"; do
+        type_pattern+="${type}|"
+    done
+    # 去除末尾的 '|'
+    echo "${type_pattern%|}"
+}
+
+# 主程序逻辑
+
+# 生成提交类型匹配的正则表达式
+type_regex=$(generate_type_regex)
+conventional_commit_regex="^(${type_regex})(\\(.+\\))?\\: .+$"
+echo "生成的正则匹配规则为: $conventional_commit_regex"
+
+# 从传入参数中读取提交信息
+read -r commit_message <<< "$1"
+
+# 如果提交信息包含"Merge branch"，则跳过校验直接退出
+if [[ $commit_message == *"Merge branch"* ]]; then
+    echo "检测到合并分支信息... 跳过校验"
+    exit 0
+fi
+
+# 计算提交信息长度并打印调试信息
+msg_length=${#commit_message}
+echo "当前提交信息长度为: $msg_length"
+
+# 检查提交信息长度是否符合最小长度要求
+if (( msg_length < COMMIT_MESSAGE_MIN_LENGTH )); then
+    echo -e "错误: 提交信息长度应大于等于 ${COMMIT_MESSAGE_MIN_LENGTH} 字符，当前长度为：${msg_length}"
+    exit 1
+fi
+
+# 校验提交信息是否遵循Conventional Commits规范
+if [[ "$commit_message" =~ $conventional_commit_regex ]]; then
+    echo -e "提交信息符合Conventional Commit规范..."
+    exit 0
+else
+    echo -e "提交信息不符合Conventional Commit规范"
+    echo "有效的提交信息示例:"
+    echo "  feat: 添加新特性"
+    echo "  fix(ITCHARGING-888): 修改了某些问题"
+    echo "允许的提交类型前缀列表: $type_regex"
+    exit 1
+fi

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# 常量定义区域：
+# 设置调试模式，默认关闭
+DEBUG_MODE=1
+# 禁用分支检查标志，值为1表示禁用检查
+BRANCH_CHECK_DISABLED=0
+
+# 功能函数定义：
+# 检查当前分支是否包含禁止的分支
+check_branch_inclusion() {
+    local forbidden_branch="$1"  # 禁止分支名称作为参数传入
+
+    # 如果当前分支与禁止分支相同，则无需检查
+    if [ "$currBranch" = "$forbidden_branch" ]; then
+        echo "当前分支与被检查分支相同，跳过检查。"
+        return
+    fi
+
+    # 使用git branch --contains检查当前分支是否包含禁止分支
+    if git branch --contains "$forbidden_branch" | grep -q "^* "; then
+        echo -e "错误：当前分支 ${currBranch} 包含禁止的分支 ${forbidden_branch}"
+        exit 1  # 发生错误时使用对应的退出码
+    fi
+}
+
+# 脚本主执行流程：
+# 首先判断分支检查是否被禁用
+if [[ "$BRANCH_CHECK_DISABLED" -eq 1 ]]; then
+    echo "信息：分支检查已禁用，跳过。"
+    exit 0  # 无错误，正常退出
+fi
+
+# 获取当前Git分支名称
+currBranch=$(git symbolic-ref --short HEAD 2>/dev/null)
+# 检查是否成功获取到分支名
+if [ $? -ne 0 ]; then
+    echo "错误：无法获取当前分支，请确认当前目录位于Git仓库中。"
+    exit 1  # 非Git仓库错误退出
+fi
+
+echo "信息：当前分支名为: ${currBranch}"
+
+# 遍历BRANCH_CHECK_NAMES数组（假设此数组已定义且包含禁止的分支名）
+for branch in "${BRANCH_CHECK_NAMES[@]}"; do
+    check_branch_inclusion "$branch"  # 对每个禁止分支调用检查函数
+done
+
+echo "信息：预提交检查通过。"
+exit 0  # 所有检查均通过，正常退出

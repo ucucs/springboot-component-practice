@@ -1,94 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <artifactId>springboot-component-practice</artifactId>
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>springboot-component-practice</artifactId>
 
-  <build>
-    <plugins>
+    <build>
+        <plugins>
 
-      <!-- Compile Source Code Plugin -->
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-        <groupId>org.apache.maven.plugins</groupId>
-        <version>3.8.1</version>
-      </plugin>
+            <!-- Compile Source Code Plugin -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <!--        <version>3.8.1</version>-->
+            </plugin>
 
-      <!-- Springboot Plugin -->
-      <plugin>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-        <groupId>org.springframework.boot</groupId>
-        <version>${spring.boot.version}</version>
-      </plugin>
-    </plugins>
-  </build>
+            <!-- Springboot Plugin -->
+            <plugin>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <groupId>org.springframework.boot</groupId>
+                <version>${spring.boot.version}</version>
+            </plugin>
 
-  <dependencyManagement>
-    <dependencies>
-      <!-- Springboot Version Pom -->
-      <dependency>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <groupId>org.springframework.boot</groupId>
-        <scope>import</scope>
-        <type>pom</type>
-        <version>${spring.boot.version}</version>
-      </dependency>
+            <!-- 添加maven-antrun-plugin用于复制hooks文件 -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- 确保.git目录存在 -->
+                                <mkdir dir=".git/hooks"/>
 
-      <!-- project items -->
-      <dependency>
-        <artifactId>enviroment-build-info</artifactId>
-        <groupId>com.ucucs</groupId>
-        <version>${project.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+                                <!-- 复制hooks目录下的所有文件到.git/hooks -->
+                                <!-- 多模块要生效,根目录必须有.mvn文件夹 -->
+                                <copy todir=".git/hooks">
+                                    <fileset dir="${maven.multiModuleProjectDirectory}/src/hooks"/>
+                                </copy>
 
-  <description>Practice Spring Boot Component</description>
-  <groupId>com.ucucs</groupId>
-  <modelVersion>4.0.0</modelVersion>
+                                <!-- 为.git/hooks目录下的所有文件添加执行权限 -->
+                                <chmod dir=".git/hooks" perm="755"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-  <!-- Modules -->
-  <modules>
-    <module>usecase</module>
-    <module>enviroment-build-info</module>
-    <module>websocket-connect</module>
-    <module>test-case-junit</module>
-    <module>websocket-integrate</module>
-    <module>websocket-storm</module>
-    <module>excel-processing</module>
-  </modules>
 
-  <!--  Project Name -->
-  <name>springboot-component-practice</name>
+        </plugins>
+    </build>
 
-  <!-- Package Type -->
-  <packaging>pom</packaging>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Springboot Version Pom -->
+            <dependency>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <groupId>org.springframework.boot</groupId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>${spring.boot.version}</version>
+            </dependency>
 
-  <!-- Dependency Management -->
-  <properties>
-    <java.encoding>UTF-8</java.encoding>
-    <java.version>11</java.version>
+            <!-- project items -->
+            <dependency>
+                <artifactId>enviroment-build-info</artifactId>
+                <groupId>com.ucucs</groupId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-    <!-- Encoding Config -->
-    <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>${java.encoding}</project.reporting.outputEncoding>
+    <description>Practice Spring Boot Component</description>
+    <groupId>com.ucucs</groupId>
+    <modelVersion>4.0.0</modelVersion>
 
-    <!-- Springboot -->
-    <spring.boot.version>2.2.0.RELEASE</spring.boot.version>
-  </properties>
+    <!-- Modules -->
+    <modules>
+        <module>usecase</module>
+        <module>enviroment-build-info</module>
+        <module>websocket-connect</module>
+        <module>test-case-junit</module>
+        <module>websocket-integrate</module>
+        <module>websocket-storm</module>
+        <module>excel-processing</module>
+    </modules>
 
-  <!-- Package Version -->
-  <version>0.0.1-SNAPSHOT</version>
+    <!--  Project Name -->
+    <name>springboot-component-practice</name>
+
+    <!-- Package Type -->
+    <packaging>pom</packaging>
+
+    <!-- Dependency Management -->
+    <properties>
+        <java.encoding>UTF-8</java.encoding>
+        <java.version>17</java.version>
+
+        <!-- Encoding Config -->
+        <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${java.encoding}</project.reporting.outputEncoding>
+
+        <!-- Springboot -->
+        <spring.boot.version>2.7.18</spring.boot.version>
+    </properties>
+
+    <!-- Package Version -->
+    <version>0.0.1-SNAPSHOT</version>
 
 </project>
