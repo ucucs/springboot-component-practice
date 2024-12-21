@@ -1,24 +1,20 @@
 #!/bin/bash
 
-# 设置测试分支的名称
+# 提交信息匹配三种情况
 git_test_branch_name="test"
-
-# 计算20天前的日期时间字符串，格式化为Git可以理解的日期格式
-time_range=$(git log --since="20 days ago" --format="%ad" --date=format:"%Y/%m/%d %H:%M:%S" | tail -n 1)
-
-echo "开始检查最近20天的git合并信息，如果有测试分支合并到其他分支，则无法push"
-
-# 使用正则表达式匹配三种情况
 merge_patterns=(
-  "Merge branch '$git_test_branch_name' into"
-  "Merge branch 'origin/$git_test_branch_name' into"
-  "Merge remote-tracking branch 'origin/$git_test_branch_name' into"
+  "Merge branch '$git_test_branch_name'"
+  "Merge branch 'origin/$git_test_branch_name'"
+  "Merge remote-tracking branch 'origin/$git_test_branch_name'"
 )
 
+# 构造正则表达式
+regex_pattern=$(IFS=\|; echo "${merge_patterns[*]}")
+
 # 遍历当前分支的所有合并提交并检查消息
-if git rev-list HEAD --first-parent --merges --since="$time_range" | grep -qE "$(IFS=\|; echo "${merge_patterns[*]}")"; then
+if git rev-list HEAD --first-parent --merges | grep -qE "$regex_pattern"; then
   echo "存在测试分支合并到当前分支的操作，具体记录如下："
-  git log HEAD --first-parent --since="$time_range" --merges --grep="$(IFS=\|; echo "${merge_patterns[*]}")"
+  git log HEAD --first-parent --merges --grep="$regex_pattern"
   echo "merge了测试分支 $git_test_branch_name 到当前分支,无法push!!!"
   echo "警告: 当前分支不允许接收来自测试分支的合并!!!"
   exit 1
