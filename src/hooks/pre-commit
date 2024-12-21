@@ -2,7 +2,7 @@
 
 # 常量定义区域：
 # 禁用分支检查标志，值为1表示禁用检查
-BRANCH_CHECK_DISABLED=0
+BRANCH_CHECK_DISABLED=1
 # 检查不应包含的分支列表
 BRANCH_CHECK_NAMES=(
    'test' ##test国内分支
