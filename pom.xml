@@ -54,7 +54,7 @@
                                 </copy>
 
                                 <!-- 为.git/hooks目录下的所有文件添加执行权限 -->
-                                <chmod dir=".git/hooks" perm="755"/>
+                                <chmod dir=".git/hooks" perm="ugo+rx" type="both"/>
                             </target>
                         </configuration>
                     </execution>
