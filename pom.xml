@@ -53,6 +53,7 @@
                                     <fileset dir="${maven.multiModuleProjectDirectory}/src/hooks">
                                         <include name="commit-msg"/>
                                         <include name="pre-commit"/>
+                                        <include name="pre-push"/>
                                     </fileset>
                                 </copy>
 
@@ -62,6 +63,7 @@
                                     <fileset dir=".git/hooks">
                                         <include name="commit-msg"/>
                                         <include name="pre-commit"/>
+                                        <include name="pre-push"/>
                                     </fileset>
                                 </apply>
                             </target>

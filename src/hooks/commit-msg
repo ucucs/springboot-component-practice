@@ -54,6 +54,12 @@ if [[ $commit_message == *"Merge branch"* ]]; then
     exit 0
 fi
 
+# 如果提交信息包含"Merge remote-tracking branch"，则跳过校验直接退出
+if [[ $commit_message == *"Merge remote-tracking branch"* ]]; then
+    echo "检测到合并远程分支信息... 跳过校验"
+    exit 0
+fi
+
 # 针对中文的：号转换成英文的
 commit_message=$(echo "$commit_message" | sed 's/：/:/g')
 
