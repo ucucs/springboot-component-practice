@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 提交信息匹配三种情况
+# 定义需要匹配的合并模式
 git_test_branch_name="test"
 merge_patterns=(
   "Merge branch '$git_test_branch_name'"
@@ -11,42 +11,54 @@ merge_patterns=(
 # 构造正则表达式
 regex_pattern=$(IFS=\|; echo "${merge_patterns[*]}")
 
-# 1、获取当前分支名
-# 2、获取当前分支从创建该分支开始到现在所有提交记录的commit-msg
-# 3、判断每一条提交记录，是否包含merge_patterns的内容，如果有提示错误
-
-#!/bin/bash
-
-# 定义要检查的合并模式，这里以字符串形式定义，实际可以根据需要修改为数组或文件读取
-merge_patterns="merge,merged,MERGE"
-
-# 获取当前分支名
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-
-# 获取当前分支的所有提交记录，只显示commit信息部分
-# 然后，使用以下命令来获取该分支自创建以来的所有提交信息
-all_commits=$(git log --pretty=%B "$current_branch")
-
-# 对每一条提交信息进行检查
-echo "Checking commits on branch: $current_branch"
-echo "$all_commits" | while read -r commit_msg; do
-    # 判断提交信息是否包含merge_patterns中的任何一个模式
-    echo "$commit_msg"
-    #if echo "$commit_msg" | grep -qiE "$merge_patterns"; then
-    #    echo "Error: Commit message '$commit_msg' contains merge pattern(s)."
-    #fi
-done
-
-exit 1
-
-# 遍历当前分支的所有合并提交并检查消息
-if git rev-list HEAD --first-parent --merges | grep -qE "$regex_pattern"; then
-  echo "存在测试分支合并到当前分支的操作，具体记录如下："
-  git log HEAD --first-parent --merges --grep="$regex_pattern"
-  echo "merge了测试分支 $git_test_branch_name 到当前分支,无法push!!!"
-  echo "警告: 当前分支不允许接收来自测试分支的合并!!!"
-  exit 1
+# 获取当前Git分支名称
+currBranch=$(git symbolic-ref --short HEAD 2>/dev/null)
+# 检查是否成功获取到分支名
+if [ $? -ne 0 ]; then
+    echo "错误：无法获取当前分支，请确认当前目录位于Git仓库中。"
+    exit 1  # 非Git仓库错误退出
 fi
 
-echo "检查通过，未发现违规的合并操作。"
-exit 0
+echo "信息：当前分支名为: ${currBranch}"
+
+# 指定需要比较的源分支，这里应该替换为你实际需要比较的源分支名称
+#source_branch=git show-branch -a | grep '\*' | grep -v `git rev-parse --abbrev-ref HEAD` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//'
+# 获取当前分支的源分支
+source_branch=$(git show-branch -a 2>/dev/null | \
+    grep '\*' | \
+    grep -v "$(git rev-parse --abbrev-ref HEAD)" | \
+    head -n1 | \
+    sed 's/.*\[\(.*\)\].*/\1/' | \
+    sed 's/[\^~].*//')
+
+echo "源分支：$source_branch"
+
+# 如果无法获取源分支，则给出错误提示
+if [ -z "$source_branch" ]; then
+    echo "错误：无法确定源分支"
+    exit 1
+fi
+
+echo "信息：源分支为: ${source_branch}"
+
+target_branch="${currBranch}"
+
+# 初始化一个标志，用于跟踪是否发现违规的提交信息
+violation_found=false
+
+# 遍历提交信息，检查是否包含不应该出现的合并模式
+while IFS= read -r commit_msg; do
+    echo "提交信息: $commit_msg"
+    if [[ $commit_msg =~ $regex_pattern ]]; then
+        echo "错误：发现违规的合并操作，提交信息包含：$commit_msg"
+        violation_found=true
+    fi
+done <<< "$(git log "$source_branch".."$target_branch" --pretty=format:"%s")"
+
+# 根据检查结果决定脚本的退出状态
+if [ "$violation_found" = true ]; then
+    exit 1  # 发现违规，错误退出
+else
+    echo "检查通过，未发现违规的合并操作。"
+    exit 0  # 未发现问题，正常退出
+fi
