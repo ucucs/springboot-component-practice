@@ -77,6 +77,9 @@ main() {
     local_ref=$(git rev-parse HEAD)
     base_ref=$(git rev-parse '@{u}' 2>/dev/null || git rev-parse --abbrev-ref HEAD)
 
+    print_info "local_ref:$local_ref"
+    print_info "base_ref:$base_ref"
+
     # 检查合并记录
     violation_found=$(check_merge_history "$base_ref" "$local_ref")
 
