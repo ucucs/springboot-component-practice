@@ -1,87 +1,115 @@
 #!/usr/bin/env bash
 
+#
+#该脚本是一个Shell脚本，设计用于在Git提交过程中验证提交消息是否遵循Conventional Commits规范。以下是脚本的主要功能和工作流程：
+#1. **版本信息与日志输出**：脚本定义了版本号`VERSION`并使用ANSI转义码设置了颜色输出，以提供更友好的日志信息。定义了`log_info`, `log_warn`, `log_error`三个日志函数，分别用于输出信息、警告和错误级别的消息。
+#2. **配置部分**：脚本允许通过`CHECK_COMMIT_MESSAGE_ON`变量控制提交信息检查的开关，默认开启。同时，定义了提交消息的最小长度要求`COMMIT_MESSAGE_MIN_LENGTH`。
+#3. **提交类型列表**：定义了一组允许的提交类型（如`feat`、`fix`等），这些类型与Conventional Commits标准一致，用于分类不同性质的提交。
+#4. **正则表达式生成**：`generate_type_regex`函数动态生成一个正则表达式，用于匹配提交消息中的有效类型前缀。
+#5. **主程序逻辑**：
+#    - 脚本首先打印版本信息和生成的正则匹配规则。
+#    - 读取传入的提交消息文件内容（通常由Git钩子调用时自动传递）。
+#    - 如果检测到是合并分支的提交信息，则直接退出，不进行进一步检查。
+#    - 将消息中的中文冒号替换为英文冒号，以标准化消息格式。
+#    - 检查提交消息的长度是否满足最小长度要求。
+#    - 使用之前生成的正则表达式检查提交消息是否符合Conventional Commits规范。如果符合，脚本将正常结束；若不符合，则会输出错误信息并展示正确格式的示例，之后退出并返回非零状态码，以此阻止不符合规范的提交。
+#
+#总之，此脚本作为一个Git钩子脚本（尤其是`commit-msg`钩子），在用户提交代码前自动执行，确保提交消息遵循最佳实践，便于项目维护和自动化工具解析提交历史。
+
+# 版本信息
+VERSION="1.0.0"
+
+# ANSI颜色代码
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+RESET="\033[0m"
+
+# 日志函数
+log_info() {
+    echo -e "[${GREEN}INFO${RESET}] $@"
+}
+log_warn() {
+    echo -e "[${YELLOW}WARN${RESET}] $@" >&2
+}
+log_error() {
+    echo -e "[${RED}ERROR${RESET}] $@" >&2
+}
+
 # 配置部分
-# 是否开启提交信息检查
+# 设置开关，决定是否开启提交消息检查功能。
+# 如果此值为1，则会在提交前检查提交消息；
+# 如果为0，则跳过检查。默认值为1，表示检查是启用的。
 CHECK_COMMIT_MESSAGE_ON=1
-# 提交信息最短长度要求
+
+# 定义提交消息的最小长度要求。
+# 如果提交的消息长度少于这个数值，提交将会被阻止。
+# 这个设定可以帮助团队维持提交历史的清晰度和描述的充分性。
+# 默认的最小长度设为10字符。
 COMMIT_MESSAGE_MIN_LENGTH=10
 
 # 提交类型列表
-# 列表中每一项代表一种类型的提交，例如新功能、修复bug等
-declare -a TYPE_LIST=(
-    'build'      # 打包、构建工具或外部依赖变更
-    'chore'      # 构建流程或辅助工具变动
-    'ci'         # 持续集成配置变动
+TYPE_LIST=(
+    'build'      # 构建、依赖更新
+    'chore'      # 内部工具、构建脚本更改
+    'ci'         # CI配置更改
     'docs'       # 文档更新
-    'feat'       # 新功能添加
-    'fix'        # 错误修复
+    'feat'       # 新功能
+    'fix'        # Bug修复
     'perf'       # 性能优化
     'refactor'   # 代码重构
-    'revert'     # 版本回滚
+    'revert'     # 回退更改
     'style'      # 代码格式调整
     'test'       # 测试相关
 )
 
-# 函数定义区
-
-# 生成用于正则匹配的提交类型字符串
+# 生成提交类型匹配的正则表达式
 generate_type_regex() {
     local type_pattern=""
     for type in "${TYPE_LIST[@]}"; do
         type_pattern+="${type}|"
     done
-    # 去除末尾的 '|'
     echo "${type_pattern%|}"
 }
 
-# 主程序逻辑
-
-# 生成提交类型匹配的正则表达式
+# 主程序
+log_info "commit-msg版本: ${VERSION}"
 type_regex=$(generate_type_regex)
 conventional_commit_regex="^(${type_regex})(\\(.+\\))?\\:.+$"
-echo "生成的正则匹配规则为: $conventional_commit_regex"
+log_info "生成的正则匹配规则为: ${conventional_commit_regex}"
 
-# 从传入参数中读取提交信息
 commit_msg_file=$1
-
-# 读取提交信息
-commit_message=$(cat "$commit_msg_file")
-echo "当前提交信息：$commit_message"
-
-# 如果提交信息包含"Merge branch"，则跳过校验直接退出
-if [[ $commit_message == *"Merge branch"* ]]; then
-    echo "检测到合并分支信息... 跳过校验"
-    exit 0
-fi
-
-# 如果提交信息包含"Merge remote-tracking branch"，则跳过校验直接退出
-if [[ $commit_message == *"Merge remote-tracking branch"* ]]; then
-    echo "检测到合并远程分支信息... 跳过校验"
-    exit 0
-fi
-
-# 针对中文的：号转换成英文的
-commit_message=$(echo "$commit_message" | sed 's/：/:/g')
-
-# 计算提交信息长度并打印调试信息
-msg_length=${#commit_message}
-echo "当前提交信息长度为: $msg_length"
-
-# 检查提交信息长度是否符合最小长度要求
-if (( msg_length < COMMIT_MESSAGE_MIN_LENGTH )); then
-    echo -e "错误: 提交信息长度应大于等于 ${COMMIT_MESSAGE_MIN_LENGTH} 字符，当前长度为：${msg_length}"
+if [[ ! -f "$commit_msg_file" ]]; then
+    log_error "提交信息文件不存在: $commit_msg_file"
     exit 1
 fi
 
-# 校验提交信息是否遵循Conventional Commits规范
-if [[ "$commit_message" =~ $conventional_commit_regex ]]; then
-    echo -e "提交信息符合Conventional Commit规范..."
+commit_message=$(<"$commit_msg_file")
+log_info "当前提交信息: ${commit_message}"
+
+# 跳过特定类型的合并提交检查
+if [[ $commit_message == *"Merge branch"* ]] || [[ $commit_message == *"Merge remote-tracking branch"* ]]; then
+    log_info "检测到合并分支信息... 跳过校验"
     exit 0
+fi
+
+# 转换中文冒号为英文冒号
+commit_message=$(echo "$commit_message" | sed 's/：/:/g')
+
+msg_length=${#commit_message}
+if (( msg_length < COMMIT_MESSAGE_MIN_LENGTH )); then
+    log_error "提交信息长度应大于等于 ${COMMIT_MESSAGE_MIN_LENGTH} 字符，当前长度为：${msg_length}"
+    exit 1
+fi
+
+if [[ "$commit_message" =~ $conventional_commit_regex ]]; then
+    log_info "提交信息符合Conventional Commit规范..."
 else
-    echo -e "提交信息不符合Conventional Commit规范"
-    echo "有效的提交信息示例:"
-    echo "  feat: 添加新特性"
-    echo "  fix(ITCHARGING-888): 修改了某些问题"
-    echo "允许的提交类型前缀列表: $type_regex"
+    log_error "提交信息不符合Conventional Commit规范"
+    log_warn "有效的提交信息示例:"
+    log_warn "  feat: 添加新特性"
+    log_warn "  fix(ITCHARGING-888): 修复了一个问题"
+    log_warn "允许的提交类型前缀列表: ${type_regex}"
     exit 1
 fi

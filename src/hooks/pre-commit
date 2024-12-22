@@ -1,53 +1,83 @@
 #!/usr/bin/env bash
 
+#
+#该脚本是一个Git预提交（pre-commit）钩子脚本，主要用于在执行`git commit`命令前自动检查当前Git分支是否包含了某些禁止的分支。这样做可以防止用户不小心从不允许的分支上创建提交，从而维护良好的版本控制流程和团队协作规范。下面是脚本的具体作用和步骤：
+#1. **版本信息与颜色设置**：脚本定义了版本号为`1.0.0`，并设置了ANSI转义码来支持彩色的日志输出，使得终端输出的信息更加易读。
+#2. **常量定义**：
+#    - `BRANCH_CHECK_ENABLE`=1 表示分支检查功能是启用状态。
+#    - `BRANCH_CHECK_NAMES`数组列出了禁止的分支名，例如'test'和'test_intl'，这些分支不允许被其他分支直接包含或从其上发起提交。
+#
+#3. **日志函数**：定义了三个日志输出函数，分别是`log_info`（绿色，用于一般信息）、`log_warn`（黄色，用于警告信息）和`log_error`（红色，用于错误信息），以增强脚本的可读性和用户体验。
+#4. **分支检查逻辑**：
+#    - `check_branch_inclusion`函数用于检查当前分支（`currBranch`）是否直接包含（即当前分支的提交历史中是否包含了）任何一个禁止的分支。
+#    - 如果当前分支与要检查的禁止分支相同，则直接跳过检查，因为这是合理的自包含情况。
+#    - 如果当前分支包含禁止的分支，则脚本会输出错误信息，并终止提交过程，防止错误提交。
+#
+#5. **主程序流程**：
+#    - 首先，脚本会打印其版本信息。
+#    - 如果分支检查功能被禁用（`BRANCH_CHECK_ENABLE`=0），则直接跳过检查并退出。
+#    - 获取当前Git工作目录下的活跃分支名（`currBranch`）。
+#    - 确认获取到分支名后，遍历所有禁止的分支，对每个分支调用`check_branch_inclusion`函数进行检查。
+#    - 如果所有检查都通过，脚本最后会输出一条信息表示预提交分支检查成功，并正常退出，允许提交继续。
+#
+#总结而言，该脚本作为Git工作流的一部分，在预提交阶段自动执行，确保开发人员不会从或向特定的禁止分支提交代码，有助于维护Git分支结构的清晰和团队开发的规范性
+
+# 版本信息
+VERSION="1.0.0"
+
+# ANSI颜色代码
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
 # 常量定义区域：
-# 禁用分支检查标志，值为1表示禁用检查
-BRANCH_CHECK_DISABLED=1
-# 检查不应包含的分支列表
+# 分支检查标志，禁用(0),启用(1)
+BRANCH_CHECK_ENABLE=1
+# 禁止的分支列表
 BRANCH_CHECK_NAMES=(
-   'test' ##test国内分支
-   'test_intl' ##test国际分支
+   'test'  # test国内分支
+   'test_intl'  # test国际分支
 )
 
-# 功能函数定义：
+# 输出带颜色的日志函数
+log_info() { echo -e "${GREEN}[INFO]${NC} $*" ; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $*" >&2 ; }
+log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2 ; }
+
 # 检查当前分支是否包含禁止的分支
 check_branch_inclusion() {
-    local forbidden_branch="$1"  # 禁止分支名称作为参数传入
+    local forbidden_branch="$1"
 
-    # 如果当前分支与禁止分支相同，则无需检查
     if [ "$currBranch" = "$forbidden_branch" ]; then
-        echo "当前分支与被检查分支相同，跳过检查。"
+        log_info "当前分支与被检查分支相同，跳过检查。"
         return
     fi
 
-    # 使用git branch --contains检查当前分支是否包含禁止分支
     if git branch --contains "$forbidden_branch" | grep -q "^* "; then
-        echo -e "错误：当前分支 ${currBranch} 包含禁止的分支 ${forbidden_branch}"
-        exit 1  # 发生错误时使用对应的退出码
+        log_error "当前分支 ${currBranch} 包含禁止的分支 ${forbidden_branch}"
+        exit 1
     fi
 }
 
-# 脚本主执行流程：
-# 首先判断分支检查是否被禁用
-if [[ "$BRANCH_CHECK_DISABLED" -eq 1 ]]; then
-    echo "信息：分支检查已禁用，跳过。"
-    exit 0  # 无错误，正常退出
+# 主程序
+log_info "pre-commit版本: ${VERSION}"
+if [ "$BRANCH_CHECK_ENABLE" -eq 0 ]; then
+    log_info "预提交分支检查已禁用，跳过。"
+    exit 0
 fi
 
-# 获取当前Git分支名称
 currBranch=$(git symbolic-ref --short HEAD 2>/dev/null)
-# 检查是否成功获取到分支名
 if [ $? -ne 0 ]; then
-    echo "错误：无法获取当前分支，请确认当前目录位于Git仓库中。"
-    exit 1  # 非Git仓库错误退出
+    log_error "无法获取当前分支，请确认当前目录位于Git仓库中。"
+    exit 1
 fi
 
-echo "信息：当前分支名为: ${currBranch}"
+log_info "当前分支名为: ${currBranch}"
 
-# 遍历BRANCH_CHECK_NAMES数组（假设此数组已定义且包含禁止的分支名）
 for branch in "${BRANCH_CHECK_NAMES[@]}"; do
-    check_branch_inclusion "$branch"  # 对每个禁止分支调用检查函数
+    check_branch_inclusion "$branch"
 done
 
-echo "信息：预提交检查通过。"
-exit 0  # 所有检查均通过，正常退出
+log_info "预提交分支检查通过。"
+exit 0
