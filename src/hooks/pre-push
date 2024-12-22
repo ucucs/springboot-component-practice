@@ -25,16 +25,16 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 
 # 获取当前分支的所有提交记录，只显示commit信息部分
 # 然后，使用以下命令来获取该分支自创建以来的所有提交信息
-all_commits=$(git log --pretty=%B "$current_branch" ^"origin/$current_branch")
+all_commits=$(git log --pretty=%B "$current_branch")
 
 # 对每一条提交信息进行检查
 echo "Checking commits on branch: $current_branch"
 echo "$all_commits" | while read -r commit_msg; do
     # 判断提交信息是否包含merge_patterns中的任何一个模式
     echo "$commit_msg"
-    if echo "$commit_msg" | grep -qiE "$merge_patterns"; then
-        echo "Error: Commit message '$commit_msg' contains merge pattern(s)."
-    fi
+    #if echo "$commit_msg" | grep -qiE "$merge_patterns"; then
+    #    echo "Error: Commit message '$commit_msg' contains merge pattern(s)."
+    #fi
 done
 
 exit 1
