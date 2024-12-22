@@ -11,6 +11,34 @@ merge_patterns=(
 # 构造正则表达式
 regex_pattern=$(IFS=\|; echo "${merge_patterns[*]}")
 
+# 1、获取当前分支名
+# 2、获取当前分支从创建该分支开始到现在所有提交记录的commit-msg
+# 3、判断每一条提交记录，是否包含merge_patterns的内容，如果有提示错误
+
+#!/bin/bash
+
+# 定义要检查的合并模式，这里以字符串形式定义，实际可以根据需要修改为数组或文件读取
+merge_patterns="merge,merged,MERGE"
+
+# 获取当前分支名
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# 获取当前分支的所有提交记录，只显示commit信息部分
+# 然后，使用以下命令来获取该分支自创建以来的所有提交信息
+all_commits=$(git log --pretty=%B "$current_branch" ^"origin/$current_branch")
+
+# 对每一条提交信息进行检查
+echo "Checking commits on branch: $current_branch"
+echo "$all_commits" | while read -r commit_msg; do
+    # 判断提交信息是否包含merge_patterns中的任何一个模式
+    echo "$commit_msg"
+    if echo "$commit_msg" | grep -qiE "$merge_patterns"; then
+        echo "Error: Commit message '$commit_msg' contains merge pattern(s)."
+    fi
+done
+
+exit 1
+
 # 遍历当前分支的所有合并提交并检查消息
 if git rev-list HEAD --first-parent --merges | grep -qE "$regex_pattern"; then
   echo "存在测试分支合并到当前分支的操作，具体记录如下："
