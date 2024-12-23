@@ -47,10 +47,14 @@
                                 <!-- 确保.git目录存在 -->
                                 <mkdir dir=".git/hooks"/>
 
+                                <!-- 打印相关的目录 -->
+                                <echo message="Using hooks source directory: ${maven.multiModuleProjectDirectory}"/>
+
                                 <!-- 复制hooks目录下的所有文件到.git/hooks -->
                                 <!-- 多模块要生效,根目录必须有.mvn文件夹 -->
                                 <copy todir=".git/hooks" overwrite="true">
-                                    <fileset dir="${maven.multiModuleProjectDirectory}/src/hooks">
+                                    <fileset dir="${maven.multiModuleProjectDirectory}/src/hooks"
+                                             erroronmissingdir="false">
                                         <include name="commit-msg"/>
                                         <include name="pre-commit"/>
                                         <include name="pre-push"/>
@@ -58,7 +62,7 @@
                                 </copy>
 
                                 <!-- 为.git/hooks目录下的所有文件添加执行权限 -->
-                                <apply executable="chmod">
+                                <apply executable="chmod" failonerror="false">
                                     <arg value="+x"/>
                                     <fileset dir=".git/hooks">
                                         <include name="commit-msg"/>
